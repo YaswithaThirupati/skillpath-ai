@@ -1,0 +1,264 @@
+import React, { useState } from 'react';
+import { COURSES, CATEGORIES } from '../data/coursesData';
+import { 
+  Star, 
+  Clock, 
+  Users, 
+  BookOpen, 
+  Sparkles, 
+  Search, 
+  ArrowRight, 
+  Check, 
+  Filter,
+  Layers,
+  Award
+} from 'lucide-react';
+import confetti from 'canvas-confetti';
+
+export default function PopularCourses({ onSelectCourse, onNotify }) {
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [enrolledCourses, setEnrolledCourses] = useState({});
+
+  const filteredCourses = COURSES.filter((course) => {
+    const matchesCategory = activeCategory === 'All' || course.category === activeCategory;
+    const matchesSearch = 
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
+
+  const handleEnroll = (course, e) => {
+    e.stopPropagation();
+    
+    // Trigger confetti effect
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#10b981']
+      });
+    } catch (err) {
+      // safe fallback
+    }
+
+    setEnrolledCourses(prev => ({
+      ...prev,
+      [course.id]: true
+    }));
+
+    onNotify?.(`🎉 Enrolled in "${course.title}"! Your AI learning path is ready.`);
+  };
+
+  return (
+    <section id="courses" className="py-24 relative overflow-hidden">
+      {/* Background ambient lighting */}
+      <div className="absolute top-1/4 right-10 w-[450px] h-[450px] bg-blue-600/10 rounded-full blur-[130px] pointer-events-none -z-10" />
+      <div className="absolute bottom-1/4 left-10 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[140px] pointer-events-none -z-10" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-950/60 border border-blue-700/40 text-blue-300 text-xs font-semibold mb-3">
+              <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+              High-Impact Curriculums
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+              Popular Courses &{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                AI Accelerators
+              </span>
+            </h2>
+            <p className="mt-3 text-base text-slate-300 max-w-xl">
+              Master bleeding-edge software architectures, autonomous agents, and cloud platforms with project-based simulations.
+            </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="w-full md:w-72 relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search skills, tools, topics..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 focus:border-purple-500 text-sm text-white placeholder-slate-400 focus:outline-none shadow-inner"
+            />
+          </div>
+        </div>
+
+        {/* Category Filters */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+                activeCategory === category
+                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md shadow-purple-900/30 border border-purple-400/40'
+                  : 'bg-slate-900/70 text-slate-400 hover:text-white hover:bg-slate-800/80 border border-slate-800'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* Course Cards Grid */}
+        {filteredCourses.length === 0 ? (
+          <div className="text-center py-16 glass-panel rounded-2xl border border-slate-800">
+            <BookOpen className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-white">No courses found</h3>
+            <p className="text-sm text-slate-400 mt-1">Try tweaking your search keywords or filter category.</p>
+            <button
+              onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
+              className="mt-4 px-4 py-2 rounded-lg bg-purple-600 text-white text-xs font-semibold"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredCourses.map((course) => {
+              const isEnrolled = enrolledCourses[course.id];
+
+              return (
+                <div
+                  key={course.id}
+                  className="group glass-panel rounded-2xl border border-slate-800 hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-purple-950/40 flex flex-col justify-between overflow-hidden"
+                >
+                  <div>
+                    {/* Top Header Card Banner */}
+                    <div className="relative p-6 bg-gradient-to-br from-slate-900 via-purple-950/20 to-slate-900 border-b border-slate-800/80">
+                      
+                      {/* Top Badges */}
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-sm">
+                          {course.badge}
+                        </span>
+                        <span className="text-xs font-medium text-slate-300 bg-slate-800/80 px-2.5 py-0.5 rounded-full border border-slate-700">
+                          {course.level}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-xl font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-2">
+                        {course.title}
+                      </h3>
+
+                      {/* Instructor */}
+                      <div className="mt-4 flex items-center gap-3">
+                        <img
+                          src={course.instructor.avatar}
+                          alt={course.instructor.name}
+                          className="w-8 h-8 rounded-full object-cover border border-purple-500/40"
+                        />
+                        <div className="text-left">
+                          <div className="text-xs font-bold text-slate-200">{course.instructor.name}</div>
+                          <div className="text-[11px] text-slate-400">{course.instructor.role}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-6">
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed line-clamp-2 mb-4">
+                        {course.description}
+                      </p>
+
+                      {/* Meta stats: Duration, Students, Rating */}
+                      <div className="grid grid-cols-3 gap-2 py-3 px-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center mb-4">
+                        <div>
+                          <div className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
+                            <Clock className="w-3 h-3 text-blue-400" /> Time
+                          </div>
+                          <div className="text-xs font-bold text-white mt-0.5">{course.duration}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
+                            <Users className="w-3 h-3 text-purple-400" /> Students
+                          </div>
+                          <div className="text-xs font-bold text-white mt-0.5">{course.students}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
+                            <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> Rating
+                          </div>
+                          <div className="text-xs font-bold text-white mt-0.5">{course.rating} ★</div>
+                        </div>
+                      </div>
+
+                      {/* Skill Tags */}
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {course.skills.slice(0, 4).map((skill, sIdx) => (
+                          <span
+                            key={sIdx}
+                            className="text-[11px] px-2 py-0.5 rounded-md bg-purple-950/40 text-purple-200 border border-purple-800/30 font-medium"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {course.skills.length > 4 && (
+                          <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400">
+                            +{course.skills.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Footer: Price & CTA Actions */}
+                  <div className="p-6 pt-0 mt-auto">
+                    <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-extrabold text-white">{course.price}</span>
+                          <span className="text-xs text-slate-500 line-through">{course.originalPrice}</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 font-semibold">Includes Lifetime Updates</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => onSelectCourse(course)}
+                          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+                        >
+                          Syllabus
+                        </button>
+
+                        <button
+                          onClick={(e) => handleEnroll(course, e)}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-md active:scale-95 ${
+                            isEnrolled
+                              ? 'bg-emerald-600 text-white shadow-emerald-900/40 cursor-default'
+                              : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-purple-900/40'
+                          }`}
+                        >
+                          {isEnrolled ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" /> Enrolled
+                            </>
+                          ) : (
+                            <>
+                              Enroll Now <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
+    </section>
+  );
+}
